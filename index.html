@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- === OPTIMIZACIÓN SEO BÁSICA === -->
+    <title>Elegan's Huambaló | Muebles de Madera de Alta Calidad en Ecuador</title>
+    <meta name="description" content="Somos fabricantes directos de muebles en Huambaló, Ecuador. Comedores, salas y dormitorios con diseños modernos y madera sólida. ¡Cotiza tu mueble personalizado aquí!">
+    <meta name="keywords" content="muebles, Huambalo, muebles Huambalo, salas, comedores, dormitorios, sillas, sofas, fabrica de muebles Ecuador, juegos de sala, comedores de madera, dormitorios modernos, muebles a medida, Elegan's Huambalo">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://tudominio.com" /> <!-- Cambia esto por tu dominio real si lo tienes -->
+    
+    <link rel="icon" type="image/png" href="favicon.png?v=2">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <style>
+        :root {
+            --azul-elegans: #111524; 
+            --amarillo-elegans: #fcd705; 
+            --fondo-claro: #f8f9fc;
+            --texto-oscuro: #2b2b2b;
+            --texto-gris: #666666;
+            --bg-tarjeta: #ffffff;
+        }
+
+        /* --- MODO OSCURO VARIABLES --- */
+        body.dark-mode {
+            --fondo-claro: #121212;
+            --texto-oscuro: #e0e0e0;
+            --texto-gris: #a0a0a0;
+            --bg-tarjeta: #1e1e1e;
+            --azul-elegans: #1c2331;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--fondo-claro);
+            color: var(--texto-oscuro);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* --- HEADER Y MENÚ HAMBURGUESA --- */
+        header {
+            background-color: var(--azul-elegans); color: white; text-align: center;
+            padding: 3rem 1rem; display: flex; flex-direction: column; align-items: center;
+            border-bottom: 6px solid var(--amarillo-elegans); position: relative; 
+        }
+
+        .menu-btn {
+            position: absolute; top: 15px; right: 20px; font-size: 28px; background: none;
+            border: none; color: white; cursor: pointer; z-index: 100;
+        }
+
+        .menu-desplegable {
+            position: absolute; top: 60px; right: 20px; background: var(--bg-tarjeta);
+            border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: none;
+            flex-direction: column; overflow: hidden; z-index: 99; min-width: 150px;
+        }
+        .menu-desplegable.activo { display: flex; }
+        .menu-item {
+            padding: 15px 20px; background: none; border: none; border-bottom: 1px solid #ddd;
+            color: var(--texto-oscuro); cursor: pointer; font-family: 'Montserrat'; font-weight: 500;
+            text-align: left; transition: background 0.2s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .menu-item:hover { background-color: rgba(252, 215, 5, 0.2); }
+        .menu-item:last-child { border-bottom: none; }
+
+        .logo-img { width: 130px; height: 130px; border-radius: 50%; object-fit: contain; box-shadow: 0 0 20px rgba(252, 215, 5, 0.15); margin-bottom: 15px;}
+        header h1 { margin: 0; font-size: 2rem; color: var(--amarillo-elegans); font-weight: 700; letter-spacing: 2px; }
+        header p { margin: 8px 0 0 0; font-weight: 300; font-size: 0.9rem; letter-spacing: 5px; }
+
+        /* --- BUSCADOR Y CARRITO FLOTANTE --- */
+        .herramientas-top {
+            max-width: 1200px; margin: 20px auto 0; padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+        }
+        .buscador-input {
+            flex-grow: 1; max-width: 400px; padding: 12px 20px; border-radius: 25px;
+            border: 2px solid var(--azul-elegans); background: var(--bg-tarjeta); color: var(--texto-oscuro);
+            font-family: 'Montserrat'; font-size: 1rem; outline: none;
+        }
+        .btn-carrito-flotante {
+            background-color: var(--amarillo-elegans); color: #111; border: none; font-weight: 700;
+            padding: 12px 25px; border-radius: 25px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-size: 1rem; display: flex; align-items: center; gap: 8px; transition: transform 0.2s;
+        }
+        .btn-carrito-flotante:hover { transform: scale(1.05); }
+
+        /* --- FILTROS Y CATÁLOGO --- */
+        .filtros-container { display: flex; justify-content: center; gap: 10px; margin: 20px auto; flex-wrap: wrap; padding: 0 20px; }
+        .btn-filtro {
+            background-color: var(--bg-tarjeta); color: var(--texto-oscuro); border: 2px solid var(--azul-elegans);
+            padding: 8px 16px; font-family: 'Montserrat'; font-weight: 700; font-size: 0.85rem;
+            border-radius: 20px; cursor: pointer; transition: all 0.3s; text-transform: uppercase;
+        }
+        .btn-filtro:hover, .btn-filtro.activo { background-color: var(--azul-elegans); color: var(--amarillo-elegans); }
+
+        .catalogo-container {
+            max-width: 1200px; margin: 30px auto 50px; padding: 0 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px;
+        }
+
+        .oculto { display: none !important; }
+
+        .tarjeta-mueble {
+            background-color: var(--bg-tarjeta); border-radius: 8px; overflow: hidden; position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); transition: transform 0.3s; border-bottom: 3px solid transparent;
+        }
+        .tarjeta-mueble:hover { transform: translateY(-5px); border-bottom: 3px solid var(--amarillo-elegans); }
+        
+        .imagen-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+        .mueble-imagen { width: 100%; height: 250px; object-fit: cover; cursor: zoom-in; display: block; }
+        .foto-contador {
+            position: absolute; bottom: 12px; right: 12px;
+            background: rgba(0,0,0,0.75);
+            color: white; padding: 8px 12px; border-radius: 999px; font-size: 0.85rem;
+            display: inline-flex; align-items: center; z-index: 2;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        }
+
+        .mueble-info { padding: 20px; }
+        .mueble-categoria { font-size: 0.7rem; color: var(--azul-elegans); font-weight: 700; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        body.dark-mode .mueble-categoria { color: var(--amarillo-elegans); }
+        .mueble-titulo { margin: 0 0 10px 0; font-size: 1.3rem; color: var(--texto-oscuro); font-weight: 700; }
+        .mueble-descripcion { font-size: 0.9rem; color: var(--texto-gris); margin-bottom: 20px; line-height: 1.5; }
+        
+        .btn-add-carrito {
+            width: 100%; background-color: var(--azul-elegans); color: white; border: none; padding: 12px;
+            font-size: 0.9rem; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: background 0.3s;
+            border-radius: 4px;
+        }
+        .btn-add-carrito:hover { background-color: var(--amarillo-elegans); color: #111; }
+
+        /* --- MODALES (VISOR FOTOS Y CARRITO) --- */
+        .modal-fondo {
+            position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center;
+            overflow: auto;
+            padding: 20px;
+        }
+        .modal-img-contenido {
+            max-width: 90%; max-height: 85vh; border: 3px solid var(--amarillo-elegans);
+            border-radius: 5px; background: #000; overflow: auto; position: relative;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .modal-img-contenido img {
+            max-width: 100%; max-height: 100%; object-fit: contain; display: block;
+            cursor: zoom-in; transition: transform 0.3s ease;
+            transform-origin: center center;
+        }
+        .modal-img-contenido img.zoomed {
+            transform: scale(2.8);
+            cursor: grab;
+        }
+        .visor-boton {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(0,0,0,0.65); color: white; border: 2px solid rgba(255,255,255,0.9);
+            width: 70px; height: 70px; border-radius: 50%; cursor: pointer; font-size: 1.8rem;
+            display: flex; justify-content: center; align-items: center; z-index: 10;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+        }
+        .visor-boton:hover { background: rgba(0,0,0,0.85); }
+        .visor-anterior { left: 10px; }
+        .visor-siguiente { right: 10px; }
+        .cerrar-visor { position: absolute; top: 20px; right: 35px; color: white; font-size: 50px; cursor: pointer; z-index: 5; }
+        
+        .modal-carrito-box {
+            background-color: var(--bg-tarjeta); padding: 30px; border-radius: 10px; width: 90%; max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; color: var(--texto-oscuro);
+        }
+        .modal-carrito-box h2 { margin-top: 0; color: var(--texto-oscuro); }
+        .lista-carrito { list-style: none; padding: 0; margin-bottom: 20px; max-height: 250px; overflow-y: auto; }
+        .lista-carrito li { padding: 10px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .btn-eliminar-item { background: #e74c3c; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 2px 8px;}
+        
+        .btn-enviar-ws {
+            width: 100%; background-color: #25D366; color: white; border: none; padding: 15px; font-size: 1rem;
+            font-weight: bold; border-radius: 5px; cursor: pointer;
+        }
+        .cerrar-modal { position: absolute; top: 15px; right: 20px; font-size: 30px; cursor: pointer; color: var(--texto-oscuro); }
+        .cerrar-visor { position: absolute; top: 20px; right: 35px; color: white; font-size: 50px; cursor: pointer; }
+
+        /* --- SECCIÓN SEO FOOTER --- */
+        .seo-footer {
+            max-width: 1000px; margin: 40px auto; padding: 30px 20px;
+            text-align: center; border-top: 1px solid #ddd;
+        }
+        body.dark-mode .seo-footer { border-top: 1px solid #333; }
+        .seo-footer h3 { font-size: 1.1rem; color: var(--texto-oscuro); margin-bottom: 15px; font-weight: 700;}
+        .seo-footer p { font-size: 0.9rem; color: var(--texto-gris); line-height: 1.6; font-weight: 300;}
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="menu-btn" id="btn-menu">☰</button>
+        <div class="menu-desplegable" id="menu-opciones">
+            <button class="menu-item" id="btn-tema">🌙 Modo Oscuro</button>
+            <button class="menu-item" id="btn-contacto">📞 Contáctanos</button>
+        </div>
+
+        <img src="image_ec13d7.jpg" alt="Logo" class="logo-img">
+        <h1>ELEGAN'S HUAMBALÓ</h1>
+        <p>ELEGANCIA - CONFORT</p>
+    </header>
+
+    <div class="herramientas-top">
+        <input type="text" id="buscador" class="buscador-input" placeholder="Buscar mueble...">
+        <button class="btn-carrito-flotante" id="abrir-carrito">🛒 <span id="contador-carrito">0</span></button>
+    </div>
+
+    <nav class="filtros-container" id="contenedor-filtros"></nav>
+
+    <!-- La etiqueta main es semántica y le dice a Google "Aquí está lo importante" -->
+    <main class="catalogo-container" id="catalogo">
+        <div style="text-align:center; grid-column: 1/-1;">Cargando catálogo de muebles...</div>
+    </main>
+
+    <!-- === TEXTO SEO PARA GOOGLE === -->
+    <footer class="seo-footer">
+        <h3>Fabricantes Directos de Muebles en Huambaló</h3>
+        <p>En <strong>Elegan's Huambaló</strong> nos especializamos en la fabricación y venta de muebles de madera sólida de la más alta calidad. Nuestro catálogo incluye desde modernos juegos de sala y elegantes comedores, hasta dormitorios diseñados para tu descanso. Orgullosamente elaborados en Huambaló, Ecuador, combinamos la tradición de nuestros artesanos con estilos contemporáneos para brindarte durabilidad, elegancia y confort. Realizamos cotizaciones a medida y envíos.</p>
+    </footer>
+
+    <!-- Modal Carrito -->
+    <div id="modal-carrito" class="modal-fondo oculto">
+        <div class="modal-carrito-box">
+            <span class="cerrar-modal" id="cerrar-carrito">&times;</span>
+            <h2>Tu Pedido</h2>
+            <ul class="lista-carrito" id="items-carrito"></ul>
+            <button class="btn-enviar-ws" id="enviar-ws">Cotizar</button>
+        </div>
+    </div>
+
+    <!-- Modal Imagen -->
+    <div id="modal-visor" class="modal-fondo oculto">
+        <span class="cerrar-visor" id="cerrar-visor">&times;</span>
+        <button class="visor-boton visor-anterior" id="visor-anterior" aria-label="Foto anterior">‹</button>
+        <div class="modal-img-contenido" id="modal-img-contenido">
+            <img id="imagen-ampliada" alt="Vista ampliada del mueble">
+        </div>
+        <button class="visor-boton visor-siguiente" id="visor-siguiente" aria-label="Siguiente foto">›</button>
+    </div>
+
+   <script>
+        const urlGoogleSheets = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIoswlMcQJOqR0VdVkkiv0xIBrUXzcAQ10iDDkL3VZ2l4WhHyLlmFbzBRtsnwoHGU0-fys9YKDgGRa/pub?gid=0&single=true&output=csv'; 
+        const numeroWhatsApp = '593960896703'; 
+        let datosGlobales = [];
+        let imagenesVisor = [];
+        let imagenActual = 0;
+
+        function tieneImagenes(fila) {
+            const imagenesRaw = [fila.Imagen, fila['Imagen 2'], fila['Imagen2'], fila['Imagen 3'], fila['Imagen3'], fila['Imagen 4'], fila['Imagen4']];
+            return imagenesRaw.some(url => url && url.toString().trim() !== '');
+        }
+
+        /* --- CARGAR DATOS --- */
+        function cargarCatalogo() {
+            Papa.parse(urlGoogleSheets, {
+                download: true, header: true, skipEmptyLines: true, transformHeader: h => h.trim(),
+                complete: function(resultados) {
+                    datosGlobales = resultados.data.filter(f => f.Titulo && tieneImagenes(f));
+                    renderizarFiltros();
+                    renderizarMuebles();
+                }
+            });
+        }
+
+        function renderizarFiltros() {
+            const contenedorFiltros = document.getElementById('contenedor-filtros');
+            const categoriasUnicas = [...new Set(datosGlobales.map(f => f.Categoria ? f.Categoria.trim() : 'Sin Categoría'))];
+            const categorias = ['Todos', ...categoriasUnicas];
+            
+            contenedorFiltros.innerHTML = '';
+            
+            categorias.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `btn-filtro ${cat === 'Todos' ? 'activo' : ''}`;
+                btn.textContent = cat;
+                btn.dataset.categoria = cat;
+                
+                btn.onclick = () => {
+                    document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('activo'));
+                    btn.classList.add('activo');
+                    document.getElementById('buscador').value = ''; 
+                    renderizarMuebles(cat, ''); 
+                };
+                contenedorFiltros.appendChild(btn);
+            });
+        }
+
+        function renderizarMuebles(categoriaFiltro = 'Todos', busqueda = '') {
+            const contenedor = document.getElementById('catalogo');
+            contenedor.innerHTML = ''; 
+
+            let contadorResultados = 0;
+
+            datosGlobales.forEach(fila => {
+                const { Titulo, Categoria, Descripcion } = fila;
+                const imagenPrincipal = fila.Imagen || '';
+                const imagenesRaw = [imagenPrincipal, fila['Imagen 2'], fila['Imagen2'], fila['Imagen 3'], fila['Imagen3'], fila['Imagen 4'], fila['Imagen4']];
+                const imagenes = imagenesRaw
+                    .filter(url => url && url.toString().trim() !== '')
+                    .map(url => url.toString().trim());
+
+                if (imagenes.length === 0) return;
+
+                const catLimpia = Categoria ? Categoria.trim() : 'Sin Categoría';
+                const coincideCategoria = categoriaFiltro === 'Todos' || catLimpia.toLowerCase() === categoriaFiltro.toLowerCase();
+                const coincideBusqueda = Titulo.toLowerCase().includes(busqueda.toLowerCase()) || 
+                                         (Descripcion && Descripcion.toLowerCase().includes(busqueda.toLowerCase()));
+
+                if (coincideCategoria && coincideBusqueda) {
+                    contadorResultados++;
+                    const contadorFotosHtml = imagenes.length > 1 ? `<span class="foto-contador">${imagenes.length} fotos</span>` : '';
+                    const imagenesData = encodeURIComponent(JSON.stringify(imagenes));
+
+                    contenedor.innerHTML += `
+                        <article class="tarjeta-mueble">
+                            <div class="imagen-wrapper">
+                                ${contadorFotosHtml}
+                                <img src="${imagenes[0]}" alt="${Titulo} - Mueble de Huambaló" class="mueble-imagen" data-imagenes="${imagenesData}" onerror="this.src='https://via.placeholder.com/400x300?text=Sin+Imagen'">
+                            </div>
+                            <div class="mueble-info">
+                                <span class="mueble-categoria">${catLimpia}</span>
+                                <h2 class="mueble-titulo">${Titulo}</h2>
+                                <p class="mueble-descripcion">${Descripcion || ''}</p>
+                                <!-- AQUÍ ENVIAMOS AMBOS DATOS: TÍTULO Y CATEGORÍA -->
+                                <button class="btn-add-carrito" onclick="agregarAlCarrito('${Titulo.replace(/'/g, "\\'")}', '${catLimpia.replace(/'/g, "\\'")}')">Añadir al Carrito</button>
+                            </div>
+                        </article>
+                    `;
+                }
+            });
+
+            if (contadorResultados === 0) {
+                contenedor.innerHTML = `<div style="text-align:center; grid-column: 1/-1; padding: 40px; color: var(--texto-gris);">No se encontraron muebles en esta categoría.</div>`;
+            }
+        }
+
+        /* --- BUSCADOR EN TIEMPO REAL --- */
+        document.getElementById('buscador').addEventListener('input', (e) => {
+            const btnActivo = document.querySelector('.btn-filtro.activo');
+            const catActiva = btnActivo ? btnActivo.dataset.categoria : 'Todos';
+            renderizarMuebles(catActiva, e.target.value);
+        });
+
+        /* --- LÓGICA DEL CARRITO --- */
+        let carrito = [];
+        
+        // AHORA LA FUNCIÓN RECIBE TÍTULO Y CATEGORÍA
+        function agregarAlCarrito(titulo, categoria) {
+            // Guardamos un "objeto" con ambos datos en lugar de solo un texto
+            carrito.push({ titulo: titulo, categoria: categoria });
+            
+            document.getElementById('contador-carrito').textContent = carrito.length;
+            const btnCart = document.getElementById('abrir-carrito');
+            btnCart.style.transform = 'scale(1.2)';
+            setTimeout(() => btnCart.style.transform = 'scale(1)', 200);
+        }
+
+        function eliminarDelCarrito(index) {
+            carrito.splice(index, 1);
+            document.getElementById('contador-carrito').textContent = carrito.length;
+            actualizarModalCarrito();
+        }
+
+        function actualizarModalCarrito() {
+            const lista = document.getElementById('items-carrito');
+            lista.innerHTML = '';
+            if (carrito.length === 0) {
+                lista.innerHTML = `<li>Carrito vacío</li>`;
+            } else {
+                carrito.forEach((item, index) => {
+                    // MOSTRAMOS LA CATEGORÍA Y EL TÍTULO EN LA LISTA VISUAL
+                    lista.innerHTML += `<li><strong>[${item.categoria}]</strong> ${item.titulo} <button class="btn-eliminar-item" onclick="eliminarDelCarrito(${index})">X</button></li>`;
+                });
+            }
+        }
+
+        document.getElementById('abrir-carrito').onclick = () => {
+            actualizarModalCarrito();
+            document.getElementById('modal-carrito').classList.remove('oculto');
+        };
+
+        document.getElementById('cerrar-carrito').onclick = () => {
+            document.getElementById('modal-carrito').classList.add('oculto');
+        };
+
+        document.getElementById('enviar-ws').onclick = () => {
+            if(carrito.length === 0) return alert("El carrito está vacío");
+            let mensaje = "Hola Elegan's Huambaló. Me gustaría cotizar este pedido:\n\n";
+            
+            // ARMAMOS EL MENSAJE CON LA CATEGORÍA INCLUIDA
+            carrito.forEach(item => {
+                mensaje += ` | ${item.categoria}-Modelo: ${item.titulo}\n`;
+            });
+            
+            mensaje += "\n¿Me podrían dar más información sobre las opciones de personalización?";
+            window.open(`https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`, '_blank');
+        };
+
+        /* --- VISOR DE IMÁGENES --- */
+        function actualizarImagenVisor() {
+            const imagen = document.getElementById('imagen-ampliada');
+            imagen.classList.remove('zoomed');
+            imagen.src = imagenesVisor[imagenActual];
+            document.getElementById('modal-img-contenido').scrollTop = 0;
+            document.getElementById('modal-img-contenido').scrollLeft = 0;
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('mueble-imagen')) {
+                const datos = e.target.dataset.imagenes;
+                imagenesVisor = datos ? JSON.parse(decodeURIComponent(datos)) : [e.target.src];
+                imagenActual = 0;
+                actualizarImagenVisor();
+                document.getElementById('modal-visor').classList.remove('oculto');
+            }
+        });
+
+        document.getElementById('visor-anterior').onclick = () => {
+            if (imagenesVisor.length <= 1) return;
+            imagenActual = (imagenActual - 1 + imagenesVisor.length) % imagenesVisor.length;
+            actualizarImagenVisor();
+        };
+
+        document.getElementById('visor-siguiente').onclick = () => {
+            if (imagenesVisor.length <= 1) return;
+            imagenActual = (imagenActual + 1) % imagenesVisor.length;
+            actualizarImagenVisor();
+        };
+
+        const imagenAmpliada = document.getElementById('imagen-ampliada');
+        const modalImgContenido = document.getElementById('modal-img-contenido');
+        let arrastrando = false;
+        let inicioX = 0;
+        let inicioY = 0;
+        let scrollInicioX = 0;
+        let scrollInicioY = 0;
+
+        imagenAmpliada.addEventListener('dblclick', (e) => {
+            const { width, height } = imagenAmpliada.getBoundingClientRect();
+            const offsetX = e.clientX - imagenAmpliada.getBoundingClientRect().left;
+            const offsetY = e.clientY - imagenAmpliada.getBoundingClientRect().top;
+            const originX = (offsetX / width) * 100;
+            const originY = (offsetY / height) * 100;
+            imagenAmpliada.style.transformOrigin = `${originX}% ${originY}%`;
+            imagenAmpliada.classList.toggle('zoomed');
+        });
+
+        imagenAmpliada.addEventListener('mousedown', (e) => {
+            if (!imagenAmpliada.classList.contains('zoomed')) return;
+            arrastrando = true;
+            inicioX = e.clientX;
+            inicioY = e.clientY;
+            scrollInicioX = modalImgContenido.scrollLeft;
+            scrollInicioY = modalImgContenido.scrollTop;
+            imagenAmpliada.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!arrastrando) return;
+            modalImgContenido.scrollLeft = scrollInicioX - (e.clientX - inicioX);
+            modalImgContenido.scrollTop = scrollInicioY - (e.clientY - inicioY);
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!arrastrando) return;
+            arrastrando = false;
+            if (imagenAmpliada.classList.contains('zoomed')) {
+                imagenAmpliada.style.cursor = 'grab';
+            }
+        });
+
+        document.getElementById('cerrar-visor').onclick = () => {
+            document.getElementById('modal-visor').classList.add('oculto');
+            imagenAmpliada.classList.remove('zoomed');
+        };
+        
+        document.querySelectorAll('.modal-fondo').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if(e.target === modal) {
+                    modal.classList.add('oculto');
+                    imagenAmpliada.classList.remove('zoomed');
+                }
+            });
+        });
+
+        /* --- MENÚ, MODO OSCURO Y CONTACTO --- */
+        const btnMenu = document.getElementById('btn-menu');
+        const menuOpciones = document.getElementById('menu-opciones');
+        const btnTema = document.getElementById('btn-tema');
+        const btnContacto = document.getElementById('btn-contacto');
+
+        const isDarkModeGuardado = localStorage.getItem('eleganTheme') === 'dark';
+        if (isDarkModeGuardado) {
+            document.body.classList.add('dark-mode');
+            btnTema.textContent = '☀️ Modo Claro';
+        }
+
+        btnMenu.onclick = () => menuOpciones.classList.toggle('activo');
+
+        btnTema.onclick = () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('eleganTheme', isDark ? 'dark' : 'light');
+            btnTema.textContent = isDark ? '☀️ Modo Claro' : '🌙 Modo Oscuro';
+            menuOpciones.classList.remove('activo');
+        };
+
+        btnContacto.onclick = () => {
+            let mensaje = "Hola Elegan's Huambaló, me gustaría recibir más información.";
+            window.open(`https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`, '_blank');
+            menuOpciones.classList.remove('activo');
+        };
+
+        // INICIALIZAR
+        cargarCatalogo();
+    </script>
+</body>
+</html>
