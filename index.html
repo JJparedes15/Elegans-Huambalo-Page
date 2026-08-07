@@ -161,7 +161,7 @@
             overflow: auto; padding: 20px; box-sizing: border-box;
         }
         .modal-img-contenido {
-            width: min(92vw, 1100px); max-width: 92vw; max-height: 85vh; border: 3px solid var(--amarillo-elegans);
+            width: min(92vw, 1100px); max-width: 92vw; max-height: 85vh; border: 3px solid var(--azul-elegans);
             border-radius: 5px; background: #000; overflow: auto; position: relative;
             display: block; padding: 20px; margin: auto; box-sizing: border-box; cursor: zoom-in;
         }
@@ -169,6 +169,23 @@
             display: block; margin: 0 auto; width: auto; height: auto; max-width: none; max-height: none;
             object-fit: contain; cursor: zoom-in; transition: transform 0.25s ease;
             transform-origin: center center;
+        }
+
+        @media (max-width: 768px) {
+            .modal-img-contenido {
+                width: 100%; max-width: 100%; max-height: 92vh; padding: 12px;
+                border-width: 2px;
+            }
+            .modal-img-contenido img {
+                width: 100%; height: auto; max-width: 100%; max-height: none;
+                object-fit: contain;
+            }
+            .visor-boton {
+                width: 50px; height: 50px; font-size: 1.4rem;
+            }
+            .cerrar-visor {
+                top: 10px; right: 16px; font-size: 38px;
+            }
         }
         .modal-img-contenido img.zoomed {
             transform: scale(2.8);
@@ -488,17 +505,56 @@
         };
 
         /* --- VISOR DE IMÁGENES --- */
+        function precargarImagenes(urls) {
+            urls.forEach(url => {
+                const img = new Image();
+                img.src = url;
+            });
+        }
+
         function actualizarImagenVisor() {
             const imagen = document.getElementById('imagen-ampliada');
+            const contenedor = document.getElementById('modal-img-contenido');
+            const urlActual = imagenesVisor[imagenActual];
             imagen.classList.remove('zoomed');
             imagen.style.transform = 'scale(1)';
-            imagen.style.maxWidth = 'none';
-            imagen.style.maxHeight = 'none';
+            imagen.style.maxWidth = '100%';
+            imagen.style.maxHeight = '100%';
             imagen.style.width = 'auto';
             imagen.style.height = 'auto';
-            imagen.src = imagenesVisor[imagenActual];
-            document.getElementById('modal-img-contenido').scrollTop = 0;
-            document.getElementById('modal-img-contenido').scrollLeft = 0;
+            imagen.src = urlActual;
+            contenedor.scrollTop = 0;
+            contenedor.scrollLeft = 0;
+
+            const urlsParaPrecargar = imagenesVisor.filter(url => url !== urlActual);
+            precargarImagenes(urlsParaPrecargar);
+
+            imagen.onload = () => {
+                const rect = contenedor.getBoundingClientRect();
+                const imgNaturalWidth = imagen.naturalWidth;
+                const imgNaturalHeight = imagen.naturalHeight;
+                const ratio = imgNaturalWidth / imgNaturalHeight;
+                const maxWidth = rect.width - 40;
+                const maxHeight = rect.height - 40;
+
+                let width = imgNaturalWidth;
+                let height = imgNaturalHeight;
+
+                if (width > maxWidth) {
+                    width = maxWidth;
+                    height = width / ratio;
+                }
+
+                if (height > maxHeight) {
+                    height = maxHeight;
+                    width = height * ratio;
+                }
+
+                imagen.style.width = `${Math.round(width)}px`;
+                imagen.style.height = `${Math.round(height)}px`;
+                imagen.style.maxWidth = 'none';
+                imagen.style.maxHeight = 'none';
+            };
         }
 
         document.addEventListener('click', function(e) {
