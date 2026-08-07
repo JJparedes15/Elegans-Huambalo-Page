@@ -90,6 +90,15 @@
         }
         .btn-carrito-flotante:hover { transform: scale(1.05); }
 
+        .btn-favoritos-toggle {
+            background-color: var(--bg-tarjeta); color: var(--texto-oscuro); border: 2px solid var(--amarillo-elegans);
+            padding: 12px 20px; border-radius: 25px; cursor: pointer; font-family: 'Montserrat'; font-weight: 700;
+            display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+        }
+        .btn-favoritos-toggle.activo, .btn-favoritos-toggle:hover {
+            background-color: var(--amarillo-elegans); color: #111;
+        }
+
         /* --- FILTROS Y CATÁLOGO --- */
         .filtros-container { display: flex; justify-content: center; gap: 10px; margin: 20px auto; flex-wrap: wrap; padding: 0 20px; }
         .btn-filtro {
@@ -124,6 +133,13 @@
             display: inline-flex; align-items: center; z-index: 2;
             box-shadow: 0 6px 18px rgba(0,0,0,0.25);
         }
+        .btn-favorito {
+            position: absolute; top: 12px; left: 12px; z-index: 3; border: none; background: rgba(255,255,255,0.9);
+            width: 42px; height: 42px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+            display: flex; justify-content: center; align-items: center; transition: transform 0.2s, background 0.2s;
+        }
+        .btn-favorito:hover { transform: scale(1.05); }
+        .btn-favorito.activo { background: #ffef5f; color: #b8860b; }
 
         .mueble-info { padding: 20px; }
         .mueble-categoria { font-size: 0.7rem; color: var(--azul-elegans); font-weight: 700; text-transform: uppercase; margin-bottom: 5px; display: block; }
@@ -147,12 +163,11 @@
         .modal-img-contenido {
             width: min(92vw, 1100px); max-width: 92vw; max-height: 85vh; border: 3px solid var(--amarillo-elegans);
             border-radius: 5px; background: #000; overflow: auto; position: relative;
-            display: flex; justify-content: center; align-items: center; margin: auto;
-            box-sizing: border-box;
+            display: block; padding: 20px; margin: auto; box-sizing: border-box; cursor: zoom-in;
         }
         .modal-img-contenido img {
-            max-width: 100%; max-height: 100%; object-fit: contain; display: block;
-            cursor: zoom-in; transition: transform 0.3s ease;
+            display: block; margin: 0 auto; width: auto; height: auto; max-width: none; max-height: none;
+            object-fit: contain; cursor: zoom-in; transition: transform 0.25s ease;
             transform-origin: center center;
         }
         .modal-img-contenido img.zoomed {
@@ -213,7 +228,10 @@
 
     <div class="herramientas-top">
         <input type="text" id="buscador" class="buscador-input" placeholder="Buscar mueble...">
-        <button class="btn-carrito-flotante" id="abrir-carrito">🛒 <span id="contador-carrito">0</span></button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn-favoritos-toggle" id="btn-favoritos-toggle">❤ Favoritos</button>
+            <button class="btn-carrito-flotante" id="abrir-carrito">🛒 <span id="contador-carrito">0</span></button>
+        </div>
     </div>
 
     <nav class="filtros-container" id="contenedor-filtros"></nav>
@@ -255,10 +273,67 @@
         let datosGlobales = [];
         let imagenesVisor = [];
         let imagenActual = 0;
+        let carrito = [];
+        let favoritos = [];
+        let mostrarSoloFavoritos = false;
+
+        function obtenerImagenesProducto(fila) {
+            const columnas = ['Imagen', 'Imagen 2', 'Imagen 3', 'Imagen 4'];
+            return columnas
+                .map(columna => fila[columna])
+                .filter(url => url && String(url).trim() !== '')
+                .map(url => String(url).trim());
+        }
 
         function tieneImagenes(fila) {
-            const imagenesRaw = [fila.Imagen, fila['Imagen 2'], fila['Imagen2'], fila['Imagen 3'], fila['Imagen3'], fila['Imagen 4'], fila['Imagen4']];
-            return imagenesRaw.some(url => url && url.toString().trim() !== '');
+            return obtenerImagenesProducto(fila).length > 0;
+        }
+
+        function obtenerClaveProducto(fila) {
+            const titulo = (fila.Titulo || '').trim().toLowerCase();
+            const categoria = (fila.Categoria || 'Sin Categoría').trim().toLowerCase();
+            return `${titulo}|${categoria}`;
+        }
+
+        function cargarFavoritos() {
+            try {
+                const guardados = JSON.parse(localStorage.getItem('eleganFavoritos') || '[]');
+                favoritos = Array.isArray(guardados) ? guardados : [];
+            } catch (error) {
+                favoritos = [];
+            }
+        }
+
+        function guardarFavoritos() {
+            localStorage.setItem('eleganFavoritos', JSON.stringify(favoritos));
+        }
+
+        function esFavorito(fila) {
+            return favoritos.includes(obtenerClaveProducto(fila));
+        }
+
+        function alternarFavorito(fila) {
+            const clave = obtenerClaveProducto(fila);
+            const indice = favoritos.indexOf(clave);
+            if (indice >= 0) {
+                favoritos.splice(indice, 1);
+            } else {
+                favoritos.push(clave);
+            }
+            guardarFavoritos();
+            actualizarBotonFavoritos();
+            renderizarMuebles(
+                document.querySelector('.btn-filtro.activo')?.dataset.categoria || 'Todos',
+                document.getElementById('buscador').value,
+                mostrarSoloFavoritos
+            );
+        }
+
+        function actualizarBotonFavoritos() {
+            const btn = document.getElementById('btn-favoritos-toggle');
+            if (!btn) return;
+            btn.textContent = `❤ Favoritos${favoritos.length ? ` (${favoritos.length})` : ''}`;
+            btn.classList.toggle('activo', mostrarSoloFavoritos);
         }
 
         /* --- CARGAR DATOS --- */
@@ -296,52 +371,61 @@
             });
         }
 
-        function renderizarMuebles(categoriaFiltro = 'Todos', busqueda = '') {
+        function renderizarMuebles(categoriaFiltro = 'Todos', busqueda = '', soloFavoritos = false) {
             const contenedor = document.getElementById('catalogo');
             contenedor.innerHTML = ''; 
 
             let contadorResultados = 0;
-
-            datosGlobales.forEach(fila => {
+            const productosFiltrados = datosGlobales.filter(fila => {
                 const { Titulo, Categoria, Descripcion } = fila;
-                const imagenPrincipal = fila.Imagen || '';
-                const imagenesRaw = [imagenPrincipal, fila['Imagen 2'], fila['Imagen2'], fila['Imagen 3'], fila['Imagen3'], fila['Imagen 4'], fila['Imagen4']];
-                const imagenes = imagenesRaw
-                    .filter(url => url && url.toString().trim() !== '')
-                    .map(url => url.toString().trim());
-
-                if (imagenes.length === 0) return;
+                const imagenes = obtenerImagenesProducto(fila);
+                if (imagenes.length === 0) return false;
 
                 const catLimpia = Categoria ? Categoria.trim() : 'Sin Categoría';
                 const coincideCategoria = categoriaFiltro === 'Todos' || catLimpia.toLowerCase() === categoriaFiltro.toLowerCase();
                 const coincideBusqueda = Titulo.toLowerCase().includes(busqueda.toLowerCase()) || 
                                          (Descripcion && Descripcion.toLowerCase().includes(busqueda.toLowerCase()));
+                const coincideFavoritos = !soloFavoritos || esFavorito(fila);
 
-                if (coincideCategoria && coincideBusqueda) {
-                    contadorResultados++;
-                    const contadorFotosHtml = imagenes.length > 1 ? `<span class="foto-contador">${imagenes.length} fotos</span>` : '';
-                    const imagenesData = encodeURIComponent(JSON.stringify(imagenes));
+                return coincideCategoria && coincideBusqueda && coincideFavoritos;
+            });
 
-                    contenedor.innerHTML += `
-                        <article class="tarjeta-mueble">
-                            <div class="imagen-wrapper">
-                                ${contadorFotosHtml}
-                                <img src="${imagenes[0]}" alt="${Titulo} - Mueble de Huambaló" class="mueble-imagen" data-imagenes="${imagenesData}" onerror="this.src='https://via.placeholder.com/400x300?text=Sin+Imagen'">
-                            </div>
-                            <div class="mueble-info">
-                                <span class="mueble-categoria">${catLimpia}</span>
-                                <h2 class="mueble-titulo">${Titulo}</h2>
-                                <p class="mueble-descripcion">${Descripcion || ''}</p>
-                                <!-- AQUÍ ENVIAMOS AMBOS DATOS: TÍTULO Y CATEGORÍA -->
-                                <button class="btn-add-carrito" onclick="agregarAlCarrito('${Titulo.replace(/'/g, "\\'")}', '${catLimpia.replace(/'/g, "\\'")}')">Añadir al Carrito</button>
-                            </div>
-                        </article>
-                    `;
-                }
+            const productosOrdenados = productosFiltrados.sort((a, b) => {
+                const aFavorito = esFavorito(a) ? 1 : 0;
+                const bFavorito = esFavorito(b) ? 1 : 0;
+                return bFavorito - aFavorito;
+            });
+
+            productosOrdenados.forEach(fila => {
+                const { Titulo, Categoria, Descripcion } = fila;
+                const imagenes = obtenerImagenesProducto(fila);
+                const catLimpia = Categoria ? Categoria.trim() : 'Sin Categoría';
+                const claveProducto = obtenerClaveProducto(fila);
+                contadorResultados++;
+                const contadorFotosHtml = imagenes.length > 1 ? `<span class="foto-contador"> ${imagenes.length} fotos</span>` : '';
+                const imagenesData = encodeURIComponent(JSON.stringify(imagenes));
+
+                contenedor.innerHTML += `
+                    <article class="tarjeta-mueble">
+                        <div class="imagen-wrapper">
+                            ${contadorFotosHtml}
+                            <button class="btn-favorito ${esFavorito(fila) ? 'activo' : ''}" data-clave="${claveProducto}" aria-label="Agregar a favoritos">${esFavorito(fila) ? '❤' : '♡'}</button>
+                            <img src="${imagenes[0]}" alt="${Titulo} - Mueble de Huambaló" class="mueble-imagen" data-imagenes="${imagenesData}" onerror="this.src='https://via.placeholder.com/400x300?text=Sin+Imagen'">
+                        </div>
+                        <div class="mueble-info">
+                            <span class="mueble-categoria">${catLimpia}</span>
+                            <h2 class="mueble-titulo">${Titulo}</h2>
+                            <p class="mueble-descripcion">${Descripcion || ''}</p>
+                            <!-- AQUÍ ENVIAMOS AMBOS DATOS: TÍTULO Y CATEGORÍA -->
+                            <button class="btn-add-carrito" onclick="agregarAlCarrito('${Titulo.replace(/'/g, "\\'")}', '${catLimpia.replace(/'/g, "\\'")}')">Añadir al Carrito</button>
+                        </div>
+                    </article>
+                `;
             });
 
             if (contadorResultados === 0) {
-                contenedor.innerHTML = `<div style="text-align:center; grid-column: 1/-1; padding: 40px; color: var(--texto-gris);">No se encontraron muebles en esta categoría.</div>`;
+                const mensaje = soloFavoritos ? 'No tienes muebles favoritos aún.' : 'No se encontraron muebles en esta categoría.';
+                contenedor.innerHTML = `<div style="text-align:center; grid-column: 1/-1; padding: 40px; color: var(--texto-gris);">${mensaje}</div>`;
             }
         }
 
@@ -349,13 +433,10 @@
         document.getElementById('buscador').addEventListener('input', (e) => {
             const btnActivo = document.querySelector('.btn-filtro.activo');
             const catActiva = btnActivo ? btnActivo.dataset.categoria : 'Todos';
-            renderizarMuebles(catActiva, e.target.value);
+            renderizarMuebles(catActiva, e.target.value, mostrarSoloFavoritos);
         });
 
         /* --- LÓGICA DEL CARRITO --- */
-        let carrito = [];
-        
-        // AHORA LA FUNCIÓN RECIBE TÍTULO Y CATEGORÍA
         function agregarAlCarrito(titulo, categoria) {
             // Guardamos un "objeto" con ambos datos en lugar de solo un texto
             carrito.push({ titulo: titulo, categoria: categoria });
@@ -398,9 +479,8 @@
             if(carrito.length === 0) return alert("El carrito está vacío");
             let mensaje = "Hola Elegan's Huambaló. Me gustaría cotizar este pedido:\n\n";
             
-            // ARMAMOS EL MENSAJE CON LA CATEGORÍA INCLUIDA
             carrito.forEach(item => {
-                mensaje += ` | ${item.categoria}-Modelo: ${item.titulo}\n`;
+                mensaje += `- Categoría: *${item.categoria || 'Sin categoría'}* | Modelo: ${item.titulo}\n`;
             });
             
             mensaje += "\n¿Me podrían dar más información sobre las opciones de personalización?";
@@ -411,12 +491,27 @@
         function actualizarImagenVisor() {
             const imagen = document.getElementById('imagen-ampliada');
             imagen.classList.remove('zoomed');
+            imagen.style.transform = 'scale(1)';
+            imagen.style.maxWidth = 'none';
+            imagen.style.maxHeight = 'none';
+            imagen.style.width = 'auto';
+            imagen.style.height = 'auto';
             imagen.src = imagenesVisor[imagenActual];
             document.getElementById('modal-img-contenido').scrollTop = 0;
             document.getElementById('modal-img-contenido').scrollLeft = 0;
         }
 
         document.addEventListener('click', function(e) {
+            const botonFavorito = e.target.closest('.btn-favorito');
+            if (botonFavorito) {
+                e.stopPropagation();
+                const fila = datosGlobales.find(item => obtenerClaveProducto(item) === botonFavorito.dataset.clave);
+                if (fila) {
+                    alternarFavorito(fila);
+                }
+                return;
+            }
+
             if (e.target.classList.contains('mueble-imagen')) {
                 const datos = e.target.dataset.imagenes;
                 imagenesVisor = datos ? JSON.parse(decodeURIComponent(datos)) : [e.target.src];
@@ -447,13 +542,25 @@
         let scrollInicioY = 0;
 
         imagenAmpliada.addEventListener('dblclick', (e) => {
-            const { width, height } = imagenAmpliada.getBoundingClientRect();
-            const offsetX = e.clientX - imagenAmpliada.getBoundingClientRect().left;
-            const offsetY = e.clientY - imagenAmpliada.getBoundingClientRect().top;
-            const originX = (offsetX / width) * 100;
-            const originY = (offsetY / height) * 100;
+            const rect = imagenAmpliada.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left;
+            const offsetY = e.clientY - rect.top;
+            const originX = (offsetX / rect.width) * 100;
+            const originY = (offsetY / rect.height) * 100;
             imagenAmpliada.style.transformOrigin = `${originX}% ${originY}%`;
-            imagenAmpliada.classList.toggle('zoomed');
+
+            const estaZoom = imagenAmpliada.classList.contains('zoomed');
+            imagenAmpliada.classList.toggle('zoomed', !estaZoom);
+
+            if (!estaZoom) {
+                imagenAmpliada.style.transform = 'scale(2.2)';
+                imagenAmpliada.style.cursor = 'grab';
+            } else {
+                imagenAmpliada.style.transform = 'scale(1)';
+                imagenAmpliada.style.cursor = 'zoom-in';
+            }
+
+            e.preventDefault();
         });
 
         imagenAmpliada.addEventListener('mousedown', (e) => {
@@ -484,6 +591,7 @@
         document.getElementById('cerrar-visor').onclick = () => {
             document.getElementById('modal-visor').classList.add('oculto');
             imagenAmpliada.classList.remove('zoomed');
+            imagenAmpliada.style.transform = 'scale(1)';
         };
         
         document.querySelectorAll('.modal-fondo').forEach(modal => {
@@ -491,6 +599,7 @@
                 if(e.target === modal) {
                     modal.classList.add('oculto');
                     imagenAmpliada.classList.remove('zoomed');
+                    imagenAmpliada.style.transform = 'scale(1)';
                 }
             });
         });
@@ -500,6 +609,7 @@
         const menuOpciones = document.getElementById('menu-opciones');
         const btnTema = document.getElementById('btn-tema');
         const btnContacto = document.getElementById('btn-contacto');
+        const btnFavoritos = document.getElementById('btn-favoritos-toggle');
 
         const isDarkModeGuardado = localStorage.getItem('eleganTheme') === 'dark';
         if (isDarkModeGuardado) {
@@ -523,7 +633,17 @@
             menuOpciones.classList.remove('activo');
         };
 
+        btnFavoritos.onclick = () => {
+            mostrarSoloFavoritos = !mostrarSoloFavoritos;
+            actualizarBotonFavoritos();
+            const btnActivo = document.querySelector('.btn-filtro.activo');
+            const catActiva = btnActivo ? btnActivo.dataset.categoria : 'Todos';
+            renderizarMuebles(catActiva, document.getElementById('buscador').value, mostrarSoloFavoritos);
+        };
+
         // INICIALIZAR
+        cargarFavoritos();
+        actualizarBotonFavoritos();
         cargarCatalogo();
     </script>
 </body>
